@@ -33,7 +33,7 @@ const StarryBackground = () => {
         },
         particles: {
             number: {
-                value: 200,
+                value: 300,
                 density: {
                     enable: true,
                     area: 800,

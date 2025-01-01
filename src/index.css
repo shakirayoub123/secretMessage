@@ -19,19 +19,19 @@ textarea::placeholder {
   color: #ffffff; /* White */
   opacity: 0.8;   /* Slight transparency for effect */
 }
-.btn-pink {
-  background-color: #ff007a;
-  border: none;
-  color: white;
+.btnSecret {
+  background-color: #ff007a!important;
+  border: none!important;
+  color: white!important;
 }
 
-.btn-pink:hover {
-  background-color: #ff4da6;
+.btnSecret:hover {
+  background-color: #ff4da6!important;
 }
 
 textarea::placeholder {
-  color: #ccc;
-  opacity: 1;
+  color: #ccc!important;
+  opacity: 1!important;
 }
 
 a {
