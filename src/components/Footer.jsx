@@ -7,6 +7,7 @@ function Footer() {
             style={{
                 bottom: 0,
                 width: "100%",
+                marginTop:"100px"
             }}
         >
             <div className="container text-center">
