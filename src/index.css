@@ -33,6 +33,10 @@ textarea::placeholder {
   color: #ccc!important;
   opacity: 1!important;
 }
+input::placeholder {
+  color: #ffffff!important; /* White placeholder text */
+  opacity: 1; /* Ensures visibility */
+}
 
 a {
   font-weight: 500;

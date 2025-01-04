@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import CryptoJS from "crypto-js";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+
+withReactContent(Swal);
 
 function DecryptSecret() {
     const [searchParams] = useSearchParams();
@@ -10,10 +14,25 @@ function DecryptSecret() {
     const [step, setStep] = useState("initial"); // Tracks the current step in the UI flow
     const navigate = useNavigate(); // Hook to navigate between routes
 
+    const showAlert = (title, message, icon) => {
+        Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon,
+            color: "#000", // Text color
+            title,
+            text: message,
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+        });
+    };
+
     const decryptSecret = () => {
         const encryptedSecret = searchParams.get("secret");
         if (!encryptedSecret) {
             setError("No secret found in the URL.");
+            showAlert("Error", "No secret found in the URL.", "error");
             return;
         }
 
@@ -23,20 +42,29 @@ function DecryptSecret() {
 
             if (!originalText) {
                 setError("Incorrect password or invalid secret.");
+                showAlert("Error", "Incorrect password or invalid secret.", "error");
             } else {
                 setDecryptedSecret(originalText);
                 setError("");
                 setStep("decrypted");
+                showAlert("Success", "The secret has been successfully decrypted.", "success");
             }
         } catch (e) {
             setError("An error occurred while decrypting the secret.");
+            showAlert("Error", "An error occurred while decrypting the secret.", "error");
         }
     };
 
     const destroySecret = () => {
         setDecryptedSecret("");
         setStep("initial");
+        showAlert("Success", "The secret has been destroyed.", "success");
         navigate("/encrypt"); // Redirect to the "Encrypt" page
+    };
+
+    const copyToClipboard = () => {
+        navigator.clipboard.writeText(decryptedSecret);
+        showAlert("Copied", "The secret has been copied to your clipboard.", "success");
     };
 
     return (
@@ -59,7 +87,7 @@ function DecryptSecret() {
 
                         <button
                             className="btn btn-tool mt-3"
-                            style={{backgroundColor: "#ff007f", color: "white"}}
+                            style={{ backgroundColor: "#ff007f", color: "white" }}
                             onClick={() => setStep("password")}
                         >
                             REVEAL SECRET
@@ -70,7 +98,7 @@ function DecryptSecret() {
 
             {step === "password" && (
                 <>
-                    <h1 className="fw-bold" style={{fontSize: "2.5rem", color: "#ff007f"}}>
+                    <h1 className="fw-bold" style={{ fontSize: "2.5rem", color: "#ff007f" }}>
                         Decrypt Secret
                     </h1>
                     <p>Enter the password to reveal the secret:</p>
@@ -110,27 +138,26 @@ function DecryptSecret() {
                     <p>You received a secret.</p>
                     <div
                         className="p-3 mt-3 rounded"
-                        style={{backgroundColor: "#2c2f33", color: "white", fontSize: "1.2rem"}}
+                        style={{ backgroundColor: "#2c2f33", color: "white", fontSize: "1.2rem" }}
                     >
                         {decryptedSecret}
                         <div className="d-flex justify-content-between mt-3">
                             <button
                                 className="btn btn-danger"
                                 onClick={destroySecret}
-                                style={{backgroundColor: "#ff007f", color: "white", border: "none"}}
+                                style={{ backgroundColor: "#ff007f", color: "white", border: "none" }}
                             >
                                 DESTROY SECRET
                             </button>
                             <button
                                 className="btn btn-secondary"
-                                onClick={() => navigator.clipboard.writeText(decryptedSecret)}
-                                style={{backgroundColor: "#ff007f", color: "white", border: "none"}}
+                                onClick={copyToClipboard}
+                                style={{ backgroundColor: "#ff007f", color: "white", border: "none" }}
                             >
                                 COPY
                             </button>
                         </div>
                     </div>
-
                 </div>
             )}
         </div>

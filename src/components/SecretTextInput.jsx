@@ -1,13 +1,16 @@
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 import "../index.css";
 import successSvg from "../assets/secret.svg"; // Replace with the path to your success image
 import { useState } from "react";
 import CryptoJS from "crypto-js";
-
+withReactContent(Swal);
 function SecretTextInput() {
     const [secret, setSecret] = useState("");
     const [password, setPassword] = useState("");
     const [decryptionLink, setDecryptionLink] = useState("");
     const [isSuccess, setIsSuccess] = useState(false);
+    const [showPasswordField, setShowPasswordField] = useState(false);
 
     const encryptSecret = (message, password) => {
         return CryptoJS.AES.encrypt(message, password).toString();
@@ -15,12 +18,30 @@ function SecretTextInput() {
 
     const createSecret = () => {
         if (!secret.trim()) {
-            alert("Please enter a secret!");
+            Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "error",
+                title: "Oops...",
+                text: "Please enter a secret!",
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+            });
             return;
         }
 
-        if (!password || password.trim().length < 4) {
-            alert("Password must be at least 4 characters long.");
+        if (showPasswordField && (!password || password.trim().length < 4)) {
+            Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "error",
+                title: "Invalid Password",
+                text: "Password must be at least 4 characters long.",
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+            });
             return;
         }
 
@@ -29,11 +50,30 @@ function SecretTextInput() {
 
         setDecryptionLink(decryptionURL);
         setIsSuccess(true);
+
+        // Show success toast
+        Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "success",
+            title: "Secret link created successfully!",
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+        });
     };
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(decryptionLink).then(() => {
-            alert("Decryption link copied to clipboard!");
+            Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: "Decryption link copied to clipboard!",
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+            });
         });
     };
 
@@ -42,6 +82,7 @@ function SecretTextInput() {
         setPassword("");
         setDecryptionLink("");
         setIsSuccess(false);
+        setShowPasswordField(false);
     };
 
     return (
@@ -67,18 +108,47 @@ function SecretTextInput() {
                         onChange={(e) => setSecret(e.target.value)}
                         style={{ color: "#ffffff", caretColor: "#ffffff" }}
                     ></textarea>
-                    <small className={`d-block text-end mt-1 ${secret.length > 140 ? 'text-danger' : 'text-muted'}`}>
+                    <i className={`d-block text-end mt-1 ${secret.length > 140 ? 'text-danger' : 'text-light'}`}>
                         {140 - secret.length} characters remaining
-                    </small>
+                    </i>
 
-                    <input
-                        type="password"
-                        className="form-control bg-black text-light border-secondary mt-3"
-                        placeholder="Set a password for your secret"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        style={{ color: "#ffffff", caretColor: "#ffffff" }}
-                    />
+                    <button
+                        className="btn btn-dark d-flex align-items-center justify-content-center mt-3"
+                        onClick={() => setShowPasswordField(!showPasswordField)}
+                        style={{
+                            padding: "10px 20px",
+                            border: "1px solid #444",
+                            borderRadius: "5px",
+                            cursor: "pointer",
+                        }}
+                    >
+                        <span style={{ marginRight: "8px" }}>
+                            {showPasswordField ? "Show Less" : "More Options"}
+                        </span>
+                        <span
+                            style={{
+                                display: "inline-block",
+                                transform: showPasswordField ? "rotate(180deg)" : "rotate(0deg)",
+                                transition: "transform 0.2s ease",
+                            }}
+                        >
+                            ▼
+                        </span>
+                    </button>
+
+                    {showPasswordField && (
+                        <input
+                            type="password"
+                            className="form-control bg-black text-light border-secondary p-3 mt-3"
+                            placeholder="Set a password for your secret"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            style={{
+                                color: "#ffffff",
+                                caretColor: "#ffffff",
+                            }}
+                        />
+                    )}
 
                     <button className="btn btn-tool btnSecret mt-3 mb-2 float-end" onClick={createSecret}>
                         CREATE SECRET LINK
