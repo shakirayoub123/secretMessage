@@ -4,19 +4,19 @@ import NavBar from "./components/NavBar";
 import Footer from "./components/Footer";
 import SecretTextInput from "./components/SecretTextInput";
 import DecryptionPage from "./components/DecryptionPage.jsx";
+import PrivacyPage from "./components/PrivacyPage.jsx";
 
 function App() {
     return (
         <Router>
             <LayOut>
                 <NavBar />
-                <div className="container mt-5">
-                    <Routes>
-                        <Route path="/" element={<SecretTextInput />} />
-                        <Route path="/decrypt" element={<DecryptionPage />} />
-                        <Route path="*" element={<Navigate to="/" />} />
-                    </Routes>
-                </div>
+                <Routes>
+                    <Route path="/" element={<SecretTextInput />} />
+                    <Route path="/decrypt" element={<DecryptionPage />} />
+                    <Route path="/privacy" element={<PrivacyPage />} />
+                    <Route path="*" element={<Navigate to="/" />} />
+                </Routes>
                 <Footer />
             </LayOut>
         </Router>
