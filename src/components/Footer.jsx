@@ -23,10 +23,13 @@ function Footer() {
                     </div>
                     
                     {/* Developer Section */}
-                    <div className="flex flex-col items-center gap-3 group">
-                        <p className="text-gray-500 text-[9px] uppercase tracking-[0.4em] font-medium">Developed with ❤️ by</p>
-                        <span className="text-white font-black text-3xl tracking-tighter hover:text-pink transition-all cursor-default transform group-hover:scale-105 duration-500">SHAKIR</span>
-                        <div className="flex gap-4 mt-2">
+                    <div className="flex flex-col items-center gap-3">
+                        <div className="flex flex-col items-center group cursor-default">
+                            <p className="text-gray-600 text-[8px] uppercase tracking-[0.4em] mb-1">Architected by</p>
+                            <span className="text-white font-bold text-xl tracking-[0.1em] transition-all group-hover:text-pink duration-500">SHAKIR</span>
+                            <div className="w-8 h-[1px] bg-pink/30 mt-1 group-hover:w-12 transition-all duration-500"></div>
+                        </div>
+                        <div className="flex gap-5 mt-4">
                             {[
                                 { icon: FaTwitter, url: "https://x.com/shakirayoub5?s=21" },
                                 { icon: FaFacebook, url: "https://www.facebook.com/share/18VJmv1ou9/?mibextid=wwXIfr" },
@@ -38,9 +41,9 @@ function Footer() {
                                     href={social.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-gray-500 hover:text-pink transition-all duration-300 transform hover:-translate-y-1"
+                                    className="text-gray-600 hover:text-white transition-all duration-300"
                                 >
-                                    <social.icon className="text-lg" />
+                                    <social.icon className="text-sm" />
                                 </a>
                             ))}
                         </div>

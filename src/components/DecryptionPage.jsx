@@ -15,6 +15,7 @@ function DecryptSecret() {
     const [error, setError] = useState("");
     const [step, setStep] = useState("initial");
     const [needsPassword, setNeedsPassword] = useState(true);
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     const showAlert = (title, message, icon) => {
@@ -38,6 +39,30 @@ function DecryptSecret() {
         return params.get("id");
     };
 
+    useEffect(() => {
+        const checkSecret = async () => {
+            const secretId = getSecretIdFromUrl();
+            if (!secretId) {
+                setStep("expired");
+                setLoading(false);
+                return;
+            }
+
+            const { data, error } = await supabase
+                .from('secrets')
+                .select('id')
+                .eq('id', secretId)
+                .single();
+
+            if (error || !data) {
+                setStep("expired");
+            }
+            setLoading(false);
+        };
+
+        checkSecret();
+    }, []);
+
     const fetchEncryptedSecret = async (id) => {
         const { data, error } = await supabase
             .from('secrets')
@@ -48,9 +73,18 @@ function DecryptSecret() {
         if (error || !data) return null;
 
         if (data.is_storage) {
-            // If it's in storage, fetch the text from the public URL
-            const response = await fetch(data.data);
-            return await response.text();
+            try {
+                // If it's in storage, fetch the text from the public URL
+                const response = await fetch(data.data);
+                if (!response.ok) {
+                    console.error("Storage fetch failed:", response.statusText);
+                    return null;
+                }
+                return await response.text();
+            } catch (e) {
+                console.error("Fetch error:", e);
+                return null;
+            }
         }
         return data.data;
     };
@@ -71,7 +105,14 @@ function DecryptSecret() {
             }
 
             const bytes = CryptoJS.AES.decrypt(encryptedSecret, pwd);
-            const originalText = bytes.toString(CryptoJS.enc.Utf8);
+            let originalText = "";
+            
+            try {
+                originalText = bytes.toString(CryptoJS.enc.Utf8);
+            } catch (e) {
+                // Encoding error usually means wrong password
+                originalText = "";
+            }
 
             if (!originalText) {
                 setError("Decryption failed. The key might be incorrect.");
@@ -80,12 +121,26 @@ function DecryptSecret() {
                 try {
                     const parsed = JSON.parse(originalText);
                     setDecryptedData(parsed);
+                    setError("");
+                    setStep("decrypted");
+                    showAlert("Unlocked", "Secret decrypted successfully. This message has been purged from the server.", "success");
+                    
+                    // AUTO-DESTRUCT: Delete from server immediately after reveal
+                    autoDestroySecret(secretId, encryptedSecret, encryptedSecret.includes('.supabase.co'));
                 } catch (e) {
-                    setDecryptedData({ type: "text", data: originalText });
+                    // Smart detection fallback for images/PDFs even if JSON parse fails
+                    if (originalText.startsWith("data:")) {
+                        setDecryptedData({ type: "file", data: originalText });
+                        setError("");
+                        setStep("decrypted");
+                        showAlert("Unlocked", "Secret revealed and purged from server.", "success");
+                        autoDestroySecret(secretId, encryptedSecret, encryptedSecret.includes('.supabase.co'));
+                    } else {
+                        console.error("JSON parse error:", e);
+                        setError("Decryption failed. The key might be incorrect.");
+                        showAlert("Access Denied", "Incorrect password.", "error");
+                    }
                 }
-                setError("");
-                setStep("decrypted");
-                showAlert("Unlocked", "Secret decrypted successfully.", "success");
             }
         } catch (e) {
             console.error(e);
@@ -108,21 +163,38 @@ function DecryptSecret() {
                 return;
             }
 
+            // Try with empty password first (for secrets without passwords)
             const bytes = CryptoJS.AES.decrypt(encryptedSecret, "");
-            const originalText = bytes.toString(CryptoJS.enc.Utf8);
+            let originalText = "";
+            try {
+                originalText = bytes.toString(CryptoJS.enc.Utf8);
+            } catch (e) {
+                originalText = "";
+            }
 
             if (originalText) {
                 try {
                     const parsed = JSON.parse(originalText);
                     setDecryptedData(parsed);
+                    setError("");
+                    setStep("decrypted");
+                    setNeedsPassword(false);
+                    showAlert("Unlocked", "Access granted. Purging from server...", "success");
+                    
+                    // AUTO-DESTRUCT
+                    autoDestroySecret(secretId, encryptedSecret, encryptedSecret.includes('.supabase.co'));
+                    return;
                 } catch (e) {
-                    setDecryptedData({ type: "text", data: originalText });
+                    if (originalText.startsWith("data:")) {
+                        setDecryptedData({ type: "file", data: originalText });
+                        setError("");
+                        setStep("decrypted");
+                        setNeedsPassword(false);
+                        showAlert("Unlocked", "Access granted. Purging from server...", "success");
+                        autoDestroySecret(secretId, encryptedSecret, encryptedSecret.includes('.supabase.co'));
+                        return;
+                    }
                 }
-                setError("");
-                setStep("decrypted");
-                setNeedsPassword(false);
-                showAlert("Unlocked", "Access granted.", "success");
-                return;
             }
         } catch (e) {
             console.error(e);
@@ -132,21 +204,29 @@ function DecryptSecret() {
         setStep("password");
     };
 
+    const autoDestroySecret = async (id, dataOrUrl, isStorage) => {
+        try {
+            // 1. Delete from Database
+            await supabase.from('secrets').delete().eq('id', id);
+
+            // 2. Delete from Storage if applicable
+            if (isStorage && dataOrUrl.includes('/storage/v1/object/public/secrets/')) {
+                const fileName = dataOrUrl.split('/').pop();
+                if (fileName) {
+                    await supabase.storage.from('secrets').remove([fileName]);
+                }
+            }
+        } catch (e) {
+            console.error("Auto-destruct failed:", e);
+        }
+    };
+
     const destroySecret = async () => {
         const secretId = getSecretIdFromUrl();
-        if (secretId) {
-            try {
-                await supabase
-                    .from('secrets')
-                    .delete()
-                    .eq('id', secretId);
-            } catch (e) {
-                console.error("Delete error:", e);
-            }
-        }
+        // Since we already auto-destruct on reveal, this button just resets the local UI
         setDecryptedData(null);
         setStep("initial");
-        showAlert("Destroyed", "The secret has been purged from the cloud.", "success");
+        showAlert("Cleared", "Local session cleared.", "success");
         navigate("/");
     };
 
@@ -169,9 +249,42 @@ function DecryptSecret() {
         showAlert("Success", "File downloaded.", "success");
     };
 
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="w-16 h-16 border-4 border-pink border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
+
     return (
         <div className="flex items-center justify-center min-h-[60vh] px-4 py-12">
             <div className="w-full max-w-xl glass-card rounded-3xl p-8 md:p-12 transition-all duration-500 animate-in fade-in zoom-in">
+                {step === "expired" && (
+                    <div className="text-center space-y-8 animate-in fade-in zoom-in">
+                        <div className="inline-block p-6 rounded-full bg-red-500/10 border border-red-500/20">
+                            <FaSkullCrossbones className="text-4xl text-red-500" />
+                        </div>
+                        <div className="space-y-4">
+                            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white uppercase">
+                                Link <span className="text-red-500">Expired</span>
+                            </h1>
+                            <p className="text-gray-400 text-lg font-light leading-relaxed">
+                                This secret has already been read or has expired. 
+                                <span className="block mt-2 text-red-500/80 text-sm font-medium uppercase tracking-[0.2em]">
+                                    Purged from server
+                                </span>
+                            </p>
+                        </div>
+                        <button
+                            className="w-full border border-white/10 text-white py-5 rounded-2xl font-bold uppercase tracking-[0.2em] hover:bg-white/5 transition-all"
+                            onClick={() => navigate("/")}
+                        >
+                            Back to Home
+                        </button>
+                    </div>
+                )}
+
                 {step === "initial" && (
                     <div className="text-center space-y-8">
                         <div className="inline-block p-6 rounded-full bg-pink/10 border border-pink/20 animate-bounce">
@@ -252,18 +365,43 @@ function DecryptSecret() {
 
                         <div className="relative group">
                             <div className="w-full bg-black/60 border border-white/10 rounded-3xl p-4 md:p-6 text-center text-white glass-card shadow-inner overflow-hidden min-h-[150px] flex flex-col items-center justify-center">
-                                {decryptedData?.type === "file" ? (
-                                    decryptedData.data.startsWith("data:image/") ? (
-                                        <img 
-                                            src={decryptedData.data} 
-                                            alt="Secret" 
-                                            className="w-full rounded-2xl animate-in fade-in zoom-in duration-700" 
-                                        />
+                                {decryptedData?.type === "file" || (decryptedData?.data && String(decryptedData.data).startsWith("data:")) ? (
+                                    (decryptedData?.data && String(decryptedData.data).startsWith("data:image/")) ? (
+                                        <div className="w-full h-full flex flex-col items-center">
+                                            <img 
+                                                src={decryptedData.data} 
+                                                alt="Secret" 
+                                                className="w-full rounded-2xl animate-in fade-in zoom-in duration-700 shadow-2xl" 
+                                            />
+                                            <p className="mt-4 text-[10px] text-gray-500 uppercase tracking-widest font-bold">Image Secret Detected</p>
+                                        </div>
+                                    ) : (decryptedData?.data && String(decryptedData.data).startsWith("data:application/pdf")) ? (
+                                        <div className="space-y-6 p-8 flex flex-col items-center">
+                                            <div className="w-24 h-24 bg-red-500/10 rounded-3xl flex items-center justify-center border border-red-500/20">
+                                                <FaDownload className="text-4xl text-red-500 animate-bounce" />
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="text-lg font-bold text-white uppercase tracking-widest">{decryptedData?.name || "Secret Document"}</p>
+                                                <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">PDF File Secret</p>
+                                            </div>
+                                            <button
+                                                onClick={downloadFile}
+                                                className="bg-red-500 hover:bg-red-600 text-white px-10 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs transition-all shadow-lg shadow-red-500/20"
+                                            >
+                                                Download PDF
+                                            </button>
+                                        </div>
                                     ) : (
                                         <div className="space-y-4 p-8">
                                             <FaLink className="text-6xl text-pink mx-auto animate-pulse" />
-                                            <p className="text-lg font-bold text-white uppercase tracking-widest">{decryptedData.name}</p>
+                                            <p className="text-lg font-bold text-white uppercase tracking-widest">{decryptedData?.name || "Secret File"}</p>
                                             <p className="text-xs text-gray-500 uppercase tracking-widest">Document / File Secret</p>
+                                            <button
+                                                onClick={downloadFile}
+                                                className="bg-pink text-white px-8 py-3 rounded-xl font-bold uppercase tracking-widest text-xs"
+                                            >
+                                                Download File
+                                            </button>
                                         </div>
                                     )
                                 ) : decryptedData?.type === "link" ? (
@@ -280,8 +418,11 @@ function DecryptSecret() {
                                         </a>
                                     </div>
                                 ) : (
-                                    <div className="p-4 md:p-6 text-xl md:text-2xl font-medium leading-relaxed">
-                                        {decryptedData?.data}
+                                    <div className="w-full flex flex-col items-center gap-4">
+                                        <div className="p-4 md:p-6 text-xl md:text-2xl font-medium leading-relaxed break-all">
+                                            {decryptedData?.data}
+                                        </div>
+                                        <p className="text-[10px] text-gray-600 uppercase tracking-widest font-bold">Text Secret Detected</p>
                                     </div>
                                 )}
                             </div>

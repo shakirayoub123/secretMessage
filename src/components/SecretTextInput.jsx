@@ -23,6 +23,20 @@ function SecretTextInput() {
         return CryptoJS.AES.encrypt(message, password).toString();
     };
 
+    const showAlert = (title, message, icon) => {
+        MySwal.fire({
+            toast: true,
+            position: "top-end",
+            icon,
+            title,
+            text: message,
+            showConfirmButton: false,
+            timer: 3000,
+            background: '#1a1a1a',
+            color: '#fff'
+        });
+    };
+
     const compressImage = (file) => {
         return new Promise((resolve) => {
             const reader = new FileReader();
@@ -97,31 +111,13 @@ function SecretTextInput() {
         let payload;
         if (activeTab === "text") {
             if (!secret.trim()) {
-                MySwal.fire({
-                    toast: true,
-                    position: "top-end",
-                    icon: "error",
-                    title: "Please enter a secret!",
-                    showConfirmButton: false,
-                    timer: 3000,
-                    background: '#1a1a1a',
-                    color: '#fff'
-                });
+                showAlert("Error", "Please enter a secret message!", "error");
                 return;
             }
             payload = JSON.stringify({ type: "text", data: secret });
         } else if (activeTab === "file") {
             if (!fileData) {
-                MySwal.fire({
-                    toast: true,
-                    position: "top-end",
-                    icon: "error",
-                    title: "Please upload a file!",
-                    showConfirmButton: false,
-                    timer: 3000,
-                    background: '#1a1a1a',
-                    color: '#fff'
-                });
+                showAlert("Error", "Please upload a file or image!", "error");
                 return;
             }
             payload = JSON.stringify({ type: "file", ...fileData });
@@ -211,6 +207,7 @@ function SecretTextInput() {
 
             setDecryptionLink(decryptionURL);
             setIsSuccess(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             MySwal.close();
             
             MySwal.fire({
