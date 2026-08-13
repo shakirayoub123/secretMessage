@@ -6,8 +6,25 @@ import withReactContent from "sweetalert2-react-content";
 import { FaLockOpen, FaSkullCrossbones, FaCopy, FaUnlock, FaEye, FaDownload, FaLink } from "react-icons/fa";
 import { supabase } from "../supabase";
 
-const MySwal = withReactContent(Swal);
-
+const MySwal = withReactContent(Swal).mixin({
+    background: 'rgba(15, 15, 15, 0.95)',
+    color: '#fff',
+    backdrop: `rgba(0,0,0,0.6)`,
+    customClass: {
+        popup: 'glass-card border border-white/10 rounded-3xl shadow-2xl shadow-pink/10',
+        confirmButton: 'btn-premium bg-pink hover:bg-pink-hover text-white px-6 py-3 rounded-xl font-bold uppercase tracking-widest mt-4',
+        cancelButton: 'px-6 py-3 rounded-xl font-bold uppercase tracking-widest border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 transition-all mt-4 ml-2',
+        title: 'text-2xl font-bold text-white uppercase tracking-tight',
+        htmlContainer: 'text-gray-400',
+    },
+    buttonsStyling: false,
+    showClass: {
+        popup: 'animate-swal-show'
+    },
+    hideClass: {
+        popup: 'animate-swal-hide'
+    }
+});
 function DecryptSecret() {
     const [searchParams] = useSearchParams();
     const [password, setPassword] = useState("");
@@ -26,9 +43,7 @@ function DecryptSecret() {
             title,
             text: message,
             showConfirmButton: false,
-            timer: 3000,
-            background: '#1a1a1a',
-            color: '#fff'
+            timer: 3000
         });
     };
 
@@ -251,14 +266,14 @@ function DecryptSecret() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="flex-grow flex items-center justify-center w-full">
                 <div className="w-16 h-16 border-4 border-pink border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
     }
 
     return (
-        <div className="flex items-center justify-center min-h-[60vh] px-4 py-12">
+        <div className="flex-grow flex items-center justify-center w-full px-4 py-8 overflow-hidden">
             <div className="w-full max-w-xl glass-card rounded-3xl p-8 md:p-12 transition-all duration-500 animate-in fade-in zoom-in">
                 {step === "expired" && (
                     <div className="text-center space-y-8 animate-in fade-in zoom-in">

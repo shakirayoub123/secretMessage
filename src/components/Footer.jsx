@@ -1,72 +1,94 @@
 import { Link } from "react-router-dom";
-import { FaTwitter, FaFacebook, FaInstagram, FaLinkedin, FaGithub } from "react-icons/fa";
+import { FaTwitter, FaFacebook, FaLinkedin, FaGithub } from "react-icons/fa";
+import AnimatedLogo from "./AnimatedLogo";
 
 function Footer() {
+    const year = new Date().getFullYear();
+
+    const product = [
+        { label: "Create a secret", to: "/" },
+        { label: "Privacy policy", to: "/privacy" },
+    ];
+
+    const socials = [
+        { icon: FaTwitter, label: "Twitter", url: "https://x.com/shakirayoub5?s=21" },
+        { icon: FaFacebook, label: "Facebook", url: "https://www.facebook.com/share/18VJmv1ou9/?mibextid=wwXIfr" },
+        { icon: FaLinkedin, label: "LinkedIn", url: "https://www.linkedin.com/in/shakir-ayoub-318526338/" },
+        { icon: FaGithub, label: "GitHub", url: "https://github.com" },
+    ];
+
     return (
-        <footer className="relative z-10 py-16 px-6 border-t border-white/5 mt-auto bg-black/20 backdrop-blur-sm">
-            <div className="max-w-7xl mx-auto">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-12">
-                    {/* Brand Section */}
-                    <div className="flex flex-col items-center md:items-start gap-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-pink rounded-xl flex items-center justify-center rotate-6 shadow-lg shadow-pink/20">
-                                <span className="text-white font-black text-sm tracking-tighter">YS</span>
-                            </div>
+        <footer className="relative z-10 w-full mt-auto bg-[#0D1117] border-t border-[#1F2630]">
+            <div className="w-full max-w-6xl mx-auto px-6 py-12 md:px-8">
+                <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr_1fr] gap-10 md:gap-8">
+                    {/* Brand + short pitch */}
+                    <div className="flex flex-col gap-4 max-w-sm">
+                        <div className="flex items-center gap-3 cursor-pointer group">
+                            <AnimatedLogo variant="compact" sizeClass="w-9 h-9" iconSize="text-[10px]" containerClass="group-hover:scale-105 transition-transform" />
                             <div>
-                                <span className="text-white font-bold uppercase tracking-widest block text-xs">YourSecret</span>
-                                <span className="text-gray-600 text-[8px] uppercase tracking-[0.3em]">End-to-End Encrypted</span>
+                                <p className="text-white font-semibold text-base leading-tight">YourSecret</p>
+                                <p className="text-[#8B95A1] text-xs mt-0.5">Sealed until it's opened</p>
                             </div>
                         </div>
-                        <p className="text-gray-500 text-[10px] max-w-[200px] leading-relaxed text-center md:text-left uppercase tracking-wider font-light">
-                            Securing your digital conversations with military-grade AES-256 encryption.
+                        <p className="text-[#8B95A1] text-sm leading-relaxed">
+                            Share a message once. It's encrypted end-to-end and disappears the moment
+                            it's read, so nothing lingers where it shouldn't.
                         </p>
                     </div>
-                    
-                    {/* Developer Section */}
-                    <div className="flex flex-col items-center gap-3">
-                        <div className="flex flex-col items-center group cursor-default">
-                            <p className="text-gray-600 text-[8px] uppercase tracking-[0.4em] mb-1">Architected by</p>
-                            <span className="text-white font-bold text-xl tracking-[0.1em] transition-all group-hover:text-pink duration-500">SHAKIR</span>
-                            <div className="w-8 h-[1px] bg-pink/30 mt-1 group-hover:w-12 transition-all duration-500"></div>
-                        </div>
-                        <div className="flex gap-5 mt-4">
-                            {[
-                                { icon: FaTwitter, url: "https://x.com/shakirayoub5?s=21" },
-                                { icon: FaFacebook, url: "https://www.facebook.com/share/18VJmv1ou9/?mibextid=wwXIfr" },
-                                { icon: FaLinkedin, url: "https://www.linkedin.com/in/shakir-ayoub-318526338/" },
-                                { icon: FaGithub, url: "https://github.com" }
-                            ].map((social, i) => (
-                                <a
-                                    key={i}
-                                    href={social.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-gray-600 hover:text-white transition-all duration-300"
+
+                    {/* Product links */}
+                    <div className="flex flex-col gap-3">
+                        <p className="text-white text-sm font-semibold">Product</p>
+                        <nav className="flex flex-col gap-2.5">
+                            {product.map((item) => (
+                                <Link
+                                    key={item.label}
+                                    to={item.to}
+                                    className="text-[#8B95A1] text-sm hover:text-pink transition-colors w-fit cursor-pointer"
                                 >
-                                    <social.icon className="text-sm" />
-                                </a>
+                                    {item.label}
+                                </Link>
                             ))}
-                        </div>
+                        </nav>
                     </div>
 
-                    {/* Links Section */}
-                    <div className="flex flex-col items-center md:items-end gap-6">
-                        <div className="flex items-center gap-8">
-                            <Link to="/privacy" className="text-gray-400 hover:text-white text-[10px] uppercase tracking-[0.2em] font-bold transition-all border-b border-transparent hover:border-pink pb-1">Privacy Policy</Link>
-                            <Link to="/" className="text-gray-400 hover:text-white text-[10px] uppercase tracking-[0.2em] font-bold transition-all border-b border-transparent hover:border-pink pb-1">Create Secret</Link>
-                        </div>
-                        <div className="px-4 py-2 rounded-full bg-white/5 border border-white/10 flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                            <span className="text-gray-400 text-[9px] uppercase tracking-widest font-bold">Systems Operational</span>
+                    {/* Trust + status */}
+                    <div className="flex flex-col gap-3">
+                        <p className="text-white text-sm font-semibold">Security</p>
+                        <div className="flex flex-col gap-2.5 text-sm text-[#8B95A1]">
+                            <p>AES-256 encryption</p>
+                            <p>Zero-knowledge storage</p>
+                            <div className="flex items-center gap-2 pt-1 cursor-pointer group transition-all">
+                                <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3DDC97] opacity-60" />
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#3DDC97]" />
+                                </span>
+                                <span className="text-[#C9D1D9] group-hover:text-pink transition-colors">All systems operational</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <div className="mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <p className="text-gray-700 text-[8px] uppercase tracking-[0.5em]">&copy; {new Date().getFullYear()} YOURSECRET. ALL RIGHTS RESERVED.</p>
-                    <div className="flex gap-6">
-                        <p className="text-gray-800 text-[8px] uppercase tracking-[0.2em]">Zero-Knowledge Protocol</p>
-                        <p className="text-gray-800 text-[8px] uppercase tracking-[0.2em]">AES-256 Standard</p>
+
+                {/* Bottom bar */}
+                <div className="mt-10 pt-6 border-t border-[#1F2630] flex flex-col-reverse md:flex-row items-center justify-between gap-5">
+                    <p className="text-[#66707B] text-xs">
+                        &copy; {year} YourSecret. Built by{" "}
+                        <span className="text-[#C9D1D9] font-medium cursor-pointer hover:text-pink transition-colors">Shakir</span>.
+                    </p>
+
+                    <div className="flex gap-2">
+                        {socials.map((social) => (
+                            <a
+                                key={social.label}
+                                href={social.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label={social.label}
+                                className="w-9 h-9 rounded-full bg-[#161B22] border border-[#1F2630] flex items-center justify-center text-[#8B95A1] hover:text-pink hover:border-pink/40 hover:bg-pink/5 transition-all cursor-pointer shadow-lg hover:shadow-pink/10"
+                            >
+                                <social.icon className="text-sm" />
+                            </a>
+                        ))}
                     </div>
                 </div>
             </div>

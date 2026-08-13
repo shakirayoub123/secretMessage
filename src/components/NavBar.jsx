@@ -1,30 +1,21 @@
 import { Link } from 'react-router-dom';
-import successSvg from "../assets/secret.svg";
+import AnimatedLogo from "./AnimatedLogo";
 
 const Navbar = () => {
     return (
-        <nav className="sticky top-0 z-50 w-full px-6 py-4 glass-card border-none rounded-none">
+        <nav className="sticky top-0 z-50 w-full px-6 py-4 bg-[#0D1117]/80 backdrop-blur-md border-b border-[#1F2630] shadow-lg transition-all">
             <div className="max-w-7xl mx-auto flex items-center justify-between">
-                <Link to="/" className="flex items-center gap-3 group">
-                    <img 
-                        src={successSvg} 
-                        alt="Logo" 
-                        className="w-8 h-8 transition-transform duration-500 group-hover:rotate-[360deg]" 
+                <Link to="/" className="flex items-center gap-1 group cursor-pointer">
+                    <AnimatedLogo 
+                        variant="compact"
+                        containerClass="group-hover:rotate-12 transition-transform duration-500 mr-2" 
+                        sizeClass="w-7 h-7" 
+                        iconSize="text-[12px]"
                     />
                     <span className="text-xl font-bold tracking-tighter text-white uppercase">
                         YOUR <span className="text-pink">SECRET</span>
                     </span>
                 </Link>
-                
-                <div className="flex items-center gap-8">
-                    <Link 
-                        to="/" 
-                        className="text-sm font-medium text-gray-300 hover:text-pink transition-colors uppercase tracking-widest"
-                    >
-                        Home
-                    </Link>
-                    {/* Add more links here if needed */}
-                </div>
             </div>
         </nav>
     );

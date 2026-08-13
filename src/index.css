@@ -8,6 +8,18 @@
   --color-pink-hover: #ff4da6;
   
   --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-swal-show: swalShow 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  --animate-swal-hide: swalHide 0.2s ease-in forwards;
+  
+  @keyframes swalShow {
+    0% { opacity: 0; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  
+  @keyframes swalHide {
+    0% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.9); }
+  }
 }
 
 :root {
